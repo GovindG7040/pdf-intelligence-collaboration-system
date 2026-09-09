@@ -3,7 +3,7 @@ from typing import Any
 from app.services.bm25_instance import bm25_service
 from app.services.document_store import DocumentStore
 from app.services.gemini_service import GeminiService
-from app.services.reranker_service import RerankerService
+
 
 
 class ChatService:
@@ -15,7 +15,7 @@ class ChatService:
         2. Retrieve relevant chunks from Chroma
         3. Retrieve keyword matches from BM25 when available
         4. Merge and deduplicate results
-        5. Rerank using CrossEncoder
+        5. Select the most relevant retrieved chunks
         6. Generate answer using Gemini
     """
 
@@ -26,7 +26,7 @@ class ChatService:
         self.document_store = DocumentStore()
         self.vector_store = self.document_store.get_vector_store()
 
-        self.reranker = RerankerService()
+        
         self.gemini = GeminiService()
 
         print("Chat Service initialized.")
@@ -243,11 +243,11 @@ PAGE: {page}
         # 3. RERANK
         # -------------------------------------------------
 
-        reranked_documents = self.reranker.rerank(
-            question=retrieval_query,
-            documents=retrieved_documents,
-            top_k=5,
-        )
+        # -------------------------------------------------
+        # 3. SELECT TOP RETRIEVED DOCUMENTS
+        # -------------------------------------------------
+
+        reranked_documents = retrieved_documents[:5]
 
         # -------------------------------------------------
         # 4. BUILD CONTEXT
